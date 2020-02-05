@@ -8,3 +8,6 @@ coverage:
         patch:
             default:
                 target: 100%
+
+ignore:
+    - "src/main/java/com/alexcatarau/hba/config/AppConfig.java"
