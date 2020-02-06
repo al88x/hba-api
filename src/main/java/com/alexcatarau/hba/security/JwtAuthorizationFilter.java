@@ -1,6 +1,6 @@
 package com.alexcatarau.hba.security;
 
-import com.alexcatarau.hba.model.UserDatabaseModel;
+import com.alexcatarau.hba.model.database.UserDatabaseModel;
 import com.alexcatarau.hba.service.UserService;
 import com.auth0.jwt.JWT;
 import org.springframework.security.authentication.AuthenticationManager;

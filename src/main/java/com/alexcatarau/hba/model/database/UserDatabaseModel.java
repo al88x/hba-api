@@ -1,4 +1,4 @@
-package com.alexcatarau.hba.model;
+package com.alexcatarau.hba.model.database;
 
 import java.util.ArrayList;
 import java.util.Arrays;

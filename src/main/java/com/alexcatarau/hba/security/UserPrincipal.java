@@ -1,6 +1,6 @@
 package com.alexcatarau.hba.security;
 
-import com.alexcatarau.hba.model.UserDatabaseModel;
+import com.alexcatarau.hba.model.database.UserDatabaseModel;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

@@ -1,6 +1,6 @@
 package com.alexcatarau.hba.security;
 
-import com.alexcatarau.hba.model.UserDatabaseModel;
+import com.alexcatarau.hba.model.database.UserDatabaseModel;
 import com.alexcatarau.hba.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
