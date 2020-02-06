@@ -38,8 +38,12 @@ public class LoginIntegrationTest {
 
     @Before
     public void createTestUser() {
-        jdbi.withHandle(handle -> handle.createUpdate("INSERT INTO users(username, password, roles, permissions, active)\n" +
-                "values ('alex_admin', '$2y$10$mbmAkdm6hi7LyVBaGRBwTOgu9I.rTxo80ZUcI/GSTimZN7unr0MbC', 'ADMIN', '', true);")
+        jdbi.withHandle(handle -> handle.createUpdate("INSERT INTO users(id, username, password, roles, permissions, active)\n" +
+                "values (1, 'alex_admin', '$2y$10$mbmAkdm6hi7LyVBaGRBwTOgu9I.rTxo80ZUcI/GSTimZN7unr0MbC', 'ADMIN', 'USER', true);")
+                .execute());
+
+        jdbi.withHandle(handle -> handle.createUpdate("INSERT INTO users(id, username, password, roles, permissions, active)\n" +
+                "values (2, 'alex_user', '$2y$10$mbmAkdm6hi7LyVBaGRBwTOgu9I.rTxo80ZUcI/GSTimZN7unr0MbC', 'USER', 'USER', true);")
                 .execute());
     }
 
@@ -84,6 +88,19 @@ public class LoginIntegrationTest {
 
         mockMvc.perform(get("http://localhost:8080/user/test")
                 .header("Authorization", token))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void givenInvalidToken_thenUnauthorized() throws Exception {
+        mockMvc.perform(get("http://localhost:8080/admin/test")
+                .header("Authorization", "Bearer dfsklsfjsldjf"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void givenEmptyHeader_thenUnauthorized() throws Exception {
+        mockMvc.perform(get("http://localhost:8080/admin/test"))
                 .andExpect(status().isForbidden());
     }
 }

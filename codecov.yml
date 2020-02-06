@@ -12,3 +12,4 @@ coverage:
 ignore:
     - "src/main/java/com/alexcatarau/hba/config/AppConfig.java"
     - "src/main/java/com/alexcatarau/hba/HbaApplication.java"
+    - "src/main/java/com/alexcatarau/hba/security/utils/JwtProperties.java"
