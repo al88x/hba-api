@@ -11,3 +11,4 @@ coverage:
 
 ignore:
     - "src/main/java/com/alexcatarau/hba/config/AppConfig.java"
+    - "src/main/java/com/alexcatarau/hba/HbaApplication.java"
