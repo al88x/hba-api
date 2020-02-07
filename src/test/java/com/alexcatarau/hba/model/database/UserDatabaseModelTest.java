@@ -3,7 +3,6 @@ package com.alexcatarau.hba.model.database;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class UserDatabaseModelTest {
 

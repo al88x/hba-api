@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
 
+import static com.alexcatarau.hba.security.utils.JwtProperties.TOKEN_PREFIX;
 import static com.auth0.jwt.algorithms.Algorithm.HMAC512;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.when;
@@ -132,17 +133,8 @@ public class LoginIntegrationTest {
     }
 
     @Test
-    public void givenEmptyHeader_thenisForbidden() throws Exception {
-        mockMvc.perform(get("http://localhost:8080/admin/test"))
-                .andExpect(status().isForbidden());
-    }
+    public void givenTokenWithNoUsername_thenIsForbidden() throws Exception {
 
-    @Test
-    public void givenTokenWithNoUsername_thenisForbidden() throws Exception {
-        String token = JWT.create()
-                .withSubject(null)
-                .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.EXPIRATION_TIME))
-                .sign(HMAC512(JwtProperties.SECRET.getBytes()));
         mockMvc.perform(get("http://localhost:8080/admin/test"))
                 .andExpect(status().isForbidden());
 
@@ -150,7 +142,7 @@ public class LoginIntegrationTest {
 
     @Test
     public void givenTokenWithUnknownUsername_thenIsForbidden() throws Exception {
-        String token = JWT.create()
+        String token = TOKEN_PREFIX + JWT.create()
                 .withSubject("fake_username")
                 .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.EXPIRATION_TIME))
                 .sign(HMAC512(JwtProperties.SECRET.getBytes()));
@@ -161,8 +153,17 @@ public class LoginIntegrationTest {
     }
 
     @Test
+    public void givenEmptyToken_thenIsForbidden() throws Exception {
+        String token = TOKEN_PREFIX + "";
+        mockMvc.perform(get("http://localhost:8080/admin/test")
+                .header("Authorization", token))
+                .andExpect(status().isForbidden());
+
+    }
+
+    @Test
     public void givenRequestWithBadHeader_thenIsForbidden() throws Exception {
-        String token = JWT.create()
+        String token = TOKEN_PREFIX + JWT.create()
                 .withSubject("fake_username")
                 .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.EXPIRATION_TIME))
                 .sign(HMAC512(JwtProperties.SECRET.getBytes()));
