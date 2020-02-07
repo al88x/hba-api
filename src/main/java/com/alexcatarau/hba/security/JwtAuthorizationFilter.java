@@ -51,9 +51,9 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
     private Authentication getUsernamePasswordAuthentication(HttpServletRequest request) {
         String token = request.getHeader(HEADER_STRING)
-                .replace(TOKEN_PREFIX,"");
+                .replace(TOKEN_PREFIX, "");
 
-        if (token != null) {
+        if (!token.isEmpty()) {
             // parse the token and validate it
             String userName = JWT.require(HMAC512(SECRET.getBytes()))
                     .build()
@@ -64,9 +64,8 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
             // If so, then grab user details and create spring auth token using username, pass, authorities/roles
             if (userName != null) {
                 Optional<UserDatabaseModel> user = userService.findByUsername(userName);
-                if(user.isPresent()){
+                if (user.isPresent()) {
                     UserPrincipal userPrincipal = new UserPrincipal(user.get());
-
                     return new UsernamePasswordAuthenticationToken(userName, null, userPrincipal.getAuthorities());
                 }
             }
@@ -75,3 +74,4 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         return null;
     }
 }
+
