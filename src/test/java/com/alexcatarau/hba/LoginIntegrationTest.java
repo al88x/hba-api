@@ -39,7 +39,7 @@ public class LoginIntegrationTest {
     @Before
     public void createTestUser() {
         jdbi.withHandle(handle -> handle.createUpdate("INSERT INTO users(id, username, password, roles, permissions, active)\n" +
-                "values (1, 'alex_admin', '$2y$10$mbmAkdm6hi7LyVBaGRBwTOgu9I.rTxo80ZUcI/GSTimZN7unr0MbC', 'ADMIN', 'USER', true);")
+                "values (1, 'alex_admin', '$2y$10$mbmAkdm6hi7LyVBaGRBwTOgu9I.rTxo80ZUcI/GSTimZN7unr0MbC', 'ADMIN', 'ADMIN', true);")
                 .execute());
 
         jdbi.withHandle(handle -> handle.createUpdate("INSERT INTO users(id, username, password, roles, permissions, active)\n" +
@@ -50,6 +50,8 @@ public class LoginIntegrationTest {
     @After
     public void deleteTestUser() {
         jdbi.withHandle(handle -> handle.createUpdate("DELETE FROM users where username = 'alex_admin';")
+                .execute());
+        jdbi.withHandle(handle -> handle.createUpdate("DELETE FROM users where username = 'alex_user';")
                 .execute());
     }
 
@@ -73,7 +75,7 @@ public class LoginIntegrationTest {
     }
 
     @Test
-    public void givenValidUserAndPassword_thenCheckAuthorizedPaths() throws Exception {
+    public void givenValidAdminAndPassword_thenCheckAuthorizedPaths() throws Exception {
         String jsonBody = objectMapper.writeValueAsString(new LoginRequestModel("alex_admin", "Password123"));
         MvcResult mvcResult = mockMvc.perform(post("http://localhost:8080/login")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -92,11 +94,28 @@ public class LoginIntegrationTest {
     }
 
     @Test
-    public void givenInvalidToken_thenUnauthorized() throws Exception {
-        mockMvc.perform(get("http://localhost:8080/admin/test")
-                .header("Authorization", "Bearer dfsklsfjsldjf"))
-                .andExpect(status().isUnauthorized());
+    public void givenValidUserAndPassword_thenCheckAuthorizedPaths() throws Exception {
+        String jsonBody = objectMapper.writeValueAsString(new LoginRequestModel("alex_user", "Password123"));
+        MvcResult mvcResult = mockMvc.perform(post("http://localhost:8080/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonBody))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String token = mvcResult.getResponse().getHeader("Authorization");
+
+        mockMvc.perform(get("http://localhost:8080/user/test")
+                .header("Authorization", token))
+                .andExpect(status().isOk());
     }
+
+//    @Test
+//    public void givenInvalidToken_thenUnauthorized() throws Exception {
+//        String invalidToken = "Bearer ";
+//        mockMvc.perform(get("http://localhost:8080/admin/test")
+//                .header("Authorization", invalidToken))
+//                .andExpect(status().isUnauthorized());
+//    }
 
     @Test
     public void givenEmptyHeader_thenUnauthorized() throws Exception {
