@@ -153,6 +153,18 @@ public class LoginIntegrationTest {
     }
 
     @Test
+    public void givenNullUsername_thenIsForbidden() throws Exception {
+        String token = TOKEN_PREFIX + JWT.create()
+                .withSubject(null)
+                .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.EXPIRATION_TIME))
+                .sign(HMAC512(JwtProperties.SECRET.getBytes()));
+        mockMvc.perform(get("http://localhost:8080/admin/test")
+                .header("Authorization", token))
+                .andExpect(status().isForbidden());
+
+    }
+
+    @Test
     public void givenEmptyToken_thenIsForbidden() throws Exception {
         String token = TOKEN_PREFIX + "";
         mockMvc.perform(get("http://localhost:8080/admin/test")
