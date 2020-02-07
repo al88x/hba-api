@@ -39,11 +39,15 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         // Grab credentials and map them to loginDatabaseModel
         LoginRequestModel credentials = null;
+
+
         try {
             credentials = new ObjectMapper().readValue(request.getInputStream(), LoginRequestModel.class);
         } catch (IOException e) {
             e.printStackTrace();
+            return null;
         }
+
 
         // Create login token
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(

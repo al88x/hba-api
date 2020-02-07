@@ -31,5 +31,12 @@ public class UserDatabaseModelTest {
 
         assertEquals(0, user.getPermissionList().size());
         assertEquals(0, user.getRoleList().size());
+
+        user.setPermission(null);
+        user.setRoles(null);
+
+        assertEquals(0, user.getPermissionList().size());
+        assertEquals(0, user.getRoleList().size());
+
     }
 }

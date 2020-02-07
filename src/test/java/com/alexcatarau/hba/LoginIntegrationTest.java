@@ -3,20 +3,35 @@ package com.alexcatarau.hba;
 
 import com.alexcatarau.hba.config.IntegrationTestConfig;
 import com.alexcatarau.hba.model.request.LoginRequestModel;
+import com.alexcatarau.hba.security.JwtAuthenticationFilter;
+import com.alexcatarau.hba.security.utils.JwtProperties;
+import com.auth0.jwt.JWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jdbi.v3.core.Jdbi;
 import org.junit.*;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Date;
+
+import static com.auth0.jwt.algorithms.Algorithm.HMAC512;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -35,6 +50,13 @@ public class LoginIntegrationTest {
 
     @Autowired
     private Jdbi jdbi;
+
+    @Mock
+    private HttpServletRequest request;
+
+    @Mock
+    private HttpServletResponse response;
+
 
     @Before
     public void createTestUser() {
@@ -109,17 +131,67 @@ public class LoginIntegrationTest {
                 .andExpect(status().isOk());
     }
 
-//    @Test
-//    public void givenInvalidToken_thenUnauthorized() throws Exception {
-//        String invalidToken = "Bearer ";
-//        mockMvc.perform(get("http://localhost:8080/admin/test")
-//                .header("Authorization", invalidToken))
-//                .andExpect(status().isUnauthorized());
-//    }
-
     @Test
-    public void givenEmptyHeader_thenUnauthorized() throws Exception {
+    public void givenEmptyHeader_thenisForbidden() throws Exception {
         mockMvc.perform(get("http://localhost:8080/admin/test"))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    public void givenTokenWithNoUsername_thenisForbidden() throws Exception {
+        String token = JWT.create()
+                .withSubject(null)
+                .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.EXPIRATION_TIME))
+                .sign(HMAC512(JwtProperties.SECRET.getBytes()));
+        mockMvc.perform(get("http://localhost:8080/admin/test"))
+                .andExpect(status().isForbidden());
+
+    }
+
+    @Test
+    public void givenTokenWithUnknownUsername_thenIsForbidden() throws Exception {
+        String token = JWT.create()
+                .withSubject("fake_username")
+                .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.EXPIRATION_TIME))
+                .sign(HMAC512(JwtProperties.SECRET.getBytes()));
+        mockMvc.perform(get("http://localhost:8080/admin/test")
+                .header("Authorization", token))
+                .andExpect(status().isForbidden());
+
+    }
+
+    @Test
+    public void givenRequestWithBadHeader_thenIsForbidden() throws Exception {
+        String token = JWT.create()
+                .withSubject("fake_username")
+                .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.EXPIRATION_TIME))
+                .sign(HMAC512(JwtProperties.SECRET.getBytes()));
+        mockMvc.perform(get("http://localhost:8080/admin/test")
+                .header("autoriz", token))
+                .andExpect(status().isForbidden());
+
+    }
+
+    @Test
+    public void givenNullToken_thenIsForbidden() throws Exception {
+        mockMvc.perform(get("http://localhost:8080/admin/test")
+                .header("Authorization", ""))
+                .andExpect(status().isForbidden());
+
+    }
+
+    @Test
+    public void attemptAuthentication_whenReadingRequest_thenThrowIOexception() throws IOException {
+        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(new AuthenticationManager() {
+            @Override
+            public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+                return null;
+            }
+        });
+        when(request.getInputStream()).thenThrow(IOException.class);
+        Authentication authentication = jwtAuthenticationFilter.attemptAuthentication(request, response);
+        assertNull(authentication);
+    }
+
+
 }

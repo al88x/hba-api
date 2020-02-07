@@ -1,7 +1,6 @@
 package com.alexcatarau.hba.service;
 
 import com.alexcatarau.hba.model.database.UserDatabaseModel;
-import com.alexcatarau.hba.model.request.UserRequestModel;
 import org.jdbi.v3.core.Jdbi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
