@@ -1,7 +1,10 @@
 package com.alexcatarau.hba.config;
 
+import org.apache.tomcat.util.http.LegacyCookieProcessor;
 import org.jdbi.v3.core.Jdbi;
 import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -33,5 +36,11 @@ public class AppConfig {
     @Bean
     public Jdbi getJdbi(DataSource dataSource) {
         return Jdbi.create(dataSource);
+    }
+
+    @Bean
+    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> cookieProcessorCustomizer() {
+        return (serverFactory) -> serverFactory.addContextCustomizers(
+                (context) -> context.setCookieProcessor(new LegacyCookieProcessor()));
     }
 }

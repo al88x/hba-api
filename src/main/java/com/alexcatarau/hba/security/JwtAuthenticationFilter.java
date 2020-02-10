@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import javax.servlet.FilterChain;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -39,7 +40,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         // Grab credentials and map them to loginDatabaseModel
         LoginRequestModel credentials = null;
-
 
         try {
             credentials = new ObjectMapper().readValue(request.getInputStream(), LoginRequestModel.class);
@@ -73,6 +73,12 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                 .sign(HMAC512(JwtProperties.SECRET.getBytes()));
 
         // Add token in response
-        response.addHeader(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX +  token);
+        Cookie cookie = new Cookie("jwt", JwtProperties.TOKEN_PREFIX +  token);
+        cookie.setPath("/");
+//        cookie.setSecure(true);
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(86400); // 1 day in seconds
+
+        response.addCookie(cookie);
     }
 }
