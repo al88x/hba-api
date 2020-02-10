@@ -24,6 +24,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -85,7 +86,7 @@ public class LoginIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonBody))
                 .andExpect(status().isOk())
-                .andExpect(header().exists("Authorization"));
+                .andExpect(header().exists("Set-Cookie"));
     }
 
     @Test
@@ -106,13 +107,15 @@ public class LoginIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        String token = mvcResult.getResponse().getHeader("Authorization");
+        //given admin accessing /admin -> return is ok
+        Cookie cookie = mvcResult.getResponse().getCookie("jwt");
         mockMvc.perform(get("http://localhost:8080/admin/test")
-                .header("Authorization", token))
+                .cookie(cookie))
                 .andExpect(status().isOk());
 
+        //given admin accessing /user -> return forbidden
         mockMvc.perform(get("http://localhost:8080/user/test")
-                .header("Authorization", token))
+                .cookie(cookie))
                 .andExpect(status().isForbidden());
     }
 
@@ -125,11 +128,17 @@ public class LoginIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        String token = mvcResult.getResponse().getHeader("Authorization");
-
+        // given a valid name of cookie ->return is ok
+        Cookie cookie = mvcResult.getResponse().getCookie("jwt");
         mockMvc.perform(get("http://localhost:8080/user/test")
-                .header("Authorization", token))
+                .cookie(cookie))
                 .andExpect(status().isOk());
+
+        //given a cookie with invalid name ->return is Forbidden
+        Cookie cookieWithInvalidName = createFakeCookieFromToken(cookie.getValue(), "invalidName");
+        mockMvc.perform(get("http://localhost:8080/user/test")
+                .cookie(cookieWithInvalidName))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -137,29 +146,21 @@ public class LoginIntegrationTest {
 
         mockMvc.perform(get("http://localhost:8080/admin/test"))
                 .andExpect(status().isForbidden());
-
     }
 
     @Test
     public void givenTokenWithUnknownUsername_thenIsForbidden() throws Exception {
-        String token = TOKEN_PREFIX + JWT.create()
-                .withSubject("fake_username")
-                .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.EXPIRATION_TIME))
-                .sign(HMAC512(JwtProperties.SECRET.getBytes()));
+        Cookie cookie = createFakeCookieFromToken(createFakeToken("FakeUsername"), "jwt");
         mockMvc.perform(get("http://localhost:8080/admin/test")
-                .header("Authorization", token))
+                .cookie(cookie))
                 .andExpect(status().isForbidden());
-
     }
 
     @Test
     public void givenNullUsername_thenIsForbidden() throws Exception {
-        String token = TOKEN_PREFIX + JWT.create()
-                .withSubject(null)
-                .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.EXPIRATION_TIME))
-                .sign(HMAC512(JwtProperties.SECRET.getBytes()));
+        Cookie cookie = createFakeCookieFromToken(createFakeToken(null), "jwt");
         mockMvc.perform(get("http://localhost:8080/admin/test")
-                .header("Authorization", token))
+                .cookie(cookie))
                 .andExpect(status().isForbidden());
 
     }
@@ -167,44 +168,48 @@ public class LoginIntegrationTest {
     @Test
     public void givenEmptyToken_thenIsForbidden() throws Exception {
         String token = TOKEN_PREFIX + "";
+        Cookie cookie = createFakeCookieFromToken(token, "jwt");
         mockMvc.perform(get("http://localhost:8080/admin/test")
-                .header("Authorization", token))
+                .cookie(cookie))
                 .andExpect(status().isForbidden());
 
     }
 
     @Test
     public void givenRequestWithBadHeader_thenIsForbidden() throws Exception {
-        String token = TOKEN_PREFIX + JWT.create()
-                .withSubject("fake_username")
+        String token = "InvalidTokenPrefix" + JWT.create()
+                .withSubject("alex_user")
                 .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.EXPIRATION_TIME))
                 .sign(HMAC512(JwtProperties.SECRET.getBytes()));
+        Cookie cookie = createFakeCookieFromToken(token, "jwt");
+
         mockMvc.perform(get("http://localhost:8080/admin/test")
-                .header("autoriz", token))
+                .cookie(cookie))
                 .andExpect(status().isForbidden());
 
     }
 
-    @Test
-    public void givenNullToken_thenIsForbidden() throws Exception {
-        mockMvc.perform(get("http://localhost:8080/admin/test")
-                .header("Authorization", ""))
-                .andExpect(status().isForbidden());
-
-    }
 
     @Test
     public void attemptAuthentication_whenReadingRequest_thenThrowIOexception() throws IOException {
-        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(new AuthenticationManager() {
-            @Override
-            public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-                return null;
-            }
-        });
+        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(authentication -> null);
         when(request.getInputStream()).thenThrow(IOException.class);
         Authentication authentication = jwtAuthenticationFilter.attemptAuthentication(request, response);
         assertNull(authentication);
     }
 
+    private String createFakeToken(String username) {
+        return TOKEN_PREFIX + JWT.create()
+                .withSubject(username)
+                .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.EXPIRATION_TIME))
+                .sign(HMAC512(JwtProperties.SECRET.getBytes()));
+    }
 
+    private Cookie createFakeCookieFromToken(String token, String cookieName) {
+        Cookie cookie = new Cookie(cookieName, token);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(86400);
+        return cookie;
+    }
 }
