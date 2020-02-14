@@ -1,10 +1,12 @@
 package com.alexcatarau.hba.controller;
 
 import com.alexcatarau.hba.config.IntegrationTestConfig;
-import com.alexcatarau.hba.model.database.UserDatabaseModel;
 import com.alexcatarau.hba.model.request.LoginRequestModel;
-import com.alexcatarau.hba.service.UserService;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jdbi.v3.core.Jdbi;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,13 +17,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import javax.servlet.http.Cookie;
 
-import java.util.Optional;
-
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -39,7 +39,21 @@ public class HomeControllerTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private UserService userService;
+    private Jdbi jdbi;
+
+
+    @Before
+    public void createTestUser() {
+        jdbi.withHandle(handle -> handle.createUpdate("INSERT INTO users(id, username, password, roles, permissions, active)\n" +
+                "values (1, 'alex_admin', '$2y$10$mbmAkdm6hi7LyVBaGRBwTOgu9I.rTxo80ZUcI/GSTimZN7unr0MbC', 'ADMIN', 'ADMIN', true);")
+                .execute());
+    }
+
+    @After
+    public void deleteTestUser() {
+        jdbi.withHandle(handle -> handle.createUpdate("DELETE FROM users where username = 'alex_admin';")
+                .execute());
+    }
 
     @Test
     public void getUserInfo_givenValidCookie_thenReturnUserInfo() throws Exception {
@@ -50,10 +64,6 @@ public class HomeControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        UserDatabaseModel userDatabaseModel = new UserDatabaseModel();
-        userDatabaseModel.setUsername("alex_admin");
-        userDatabaseModel.setRoles("ADMIN");
-        when(userService.findByUsername("alex_admin")).thenReturn(Optional.of(userDatabaseModel));
         Cookie cookie = mvcResult.getResponse().getCookie("jwt");
         mockMvc.perform(get("http://localhost:8080")
                 .cookie(cookie))
