@@ -19,7 +19,7 @@ public class UserService {
 
 
     public Optional<UserDatabaseModel> findByUsername(String username) {
-        return jdbi.withHandle(handle -> handle.createQuery("SELECT * FROM users WHERE username = :username;")
+        return jdbi.withHandle(handle -> handle.createQuery("SELECT * FROM members WHERE username = :username;")
                 .bind("username", username)
                 .mapToBean(UserDatabaseModel.class)
                 .findFirst());
