@@ -7,6 +7,15 @@ public class MemberDatabaseModel {
     private String middleName;
     private String lastName;
     private String username;
+    private Integer employeeNumber;
+
+    public Integer getEmployeeNumber() {
+        return employeeNumber;
+    }
+
+    public void setEmployeeNumber(Integer employeeNumber) {
+        this.employeeNumber = employeeNumber;
+    }
 
     public Long getId() {
         return id;

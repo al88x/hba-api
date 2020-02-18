@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class MemberService {
@@ -34,5 +35,19 @@ public class MemberService {
         .bind("offset", filter.getOffset())
         .mapToBean(MemberDatabaseModel.class)
         .list());
+    }
+
+    public List<MemberDatabaseModel> getMemberByName(String value) {
+        return jdbi.withHandle(handle -> handle.createQuery("select * from members where roles = 'USER' AND (lower(concat(first_name, ' ', last_name)) like :searchValue or lower(concat(last_name, ' ', first_name)) like :searchValue);")
+        .bind("searchValue", value.toLowerCase() + "%")
+        .mapToBean(MemberDatabaseModel.class)
+        .list());
+    }
+
+    public Optional<MemberDatabaseModel> getMemberByEmployeeNumber(Integer employeeNumber) {
+        return jdbi.withHandle(handle -> handle.createQuery("select * from members where employee_number = :employeeNumber;")
+                .bind("employeeNumber", employeeNumber)
+                .mapToBean(MemberDatabaseModel.class)
+                .findFirst());
     }
 }
