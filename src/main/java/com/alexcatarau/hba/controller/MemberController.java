@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/members")
+@RequestMapping("admin/members")
 public class MemberController {
 
     private MemberService memberService;
@@ -34,11 +34,9 @@ public class MemberController {
 
     @GetMapping("/search")
     public ResponseEntity getMemberBySearchValue(@RequestParam String value, @RequestParam String filter) {
+        List<MemberDatabaseModel> membersList = null;
         if (filter.equals("name")) {
-            List<MemberDatabaseModel> membersList = memberService.getMemberByName(value);
-            if (membersList.size() > 0) {
-                return ResponseEntity.ok().body(membersList);
-            }
+            membersList = memberService.getMemberByName(value);
         }
         if (filter.equals("employee-number")) {
             Integer employeeNumber = null;
@@ -47,10 +45,10 @@ public class MemberController {
             }catch (NumberFormatException e){
                 return ResponseEntity.badRequest().build();
             }
-            Optional<MemberDatabaseModel> member = memberService.getMemberByEmployeeNumber(employeeNumber);
-            if (member.isPresent()) {
-                return ResponseEntity.ok().body(member);
-            }
+            membersList = memberService.getMemberByEmployeeNumber(employeeNumber);
+        }
+        if (membersList!= null && membersList.size() > 0) {
+            return ResponseEntity.ok().body(membersList);
         }
         return ResponseEntity.notFound().build();
     }

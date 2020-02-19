@@ -44,10 +44,10 @@ public class MemberService {
         .list());
     }
 
-    public Optional<MemberDatabaseModel> getMemberByEmployeeNumber(Integer employeeNumber) {
+    public List<MemberDatabaseModel> getMemberByEmployeeNumber(Integer employeeNumber) {
         return jdbi.withHandle(handle -> handle.createQuery("select * from members where employee_number = :employeeNumber;")
                 .bind("employeeNumber", employeeNumber)
                 .mapToBean(MemberDatabaseModel.class)
-                .findFirst());
+                .list());
     }
 }
