@@ -21,6 +21,4 @@ public class UserController {
     public ResponseEntity userPage(){
         return ResponseEntity.ok().body(Collections.singletonMap("Success", "Only user role can access this endpoint"));
     }
-
-
 }
