@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class MemberService {
@@ -44,15 +45,21 @@ public class MemberService {
                 .list());
     }
 
-    public List<MemberDatabaseModel> getMemberByEmployeeNumber(Integer employeeNumber) {
+    public List<MemberDatabaseModel> getMemberByEmployeeNumber(String employeeNumber) {
         return jdbi.withHandle(handle -> handle.createQuery("select * from members where employee_number = :employeeNumber;")
                 .bind("employeeNumber", employeeNumber)
                 .mapToBean(MemberDatabaseModel.class)
                 .list());
     }
 
-    public Long createMember(MemberCreateRequestModel memberCreateRequestModel) {
+    public Optional<MemberDatabaseModel> getMemberById(String id){
+        return jdbi.withHandle(handle -> handle.createQuery("select * from members where id = :id;")
+                .bind("id", Long.parseLong(id))
+                .mapToBean(MemberDatabaseModel.class)
+                .findFirst());
+    }
 
+    public Long createMember(MemberCreateRequestModel memberCreateRequestModel) {
         return jdbi.withHandle(handle -> handle.createQuery("insert into members (first_name, last_name, employee_number, username, email, password, roles, active, pending_confirmation) " +
                 "values (:firstName, :lastName, :employeeNumber, :username, :email, :password, :roles, :active, :pendingConfirmation) RETURNING id;")
                 .bind("firstName", memberCreateRequestModel.getFirstName())

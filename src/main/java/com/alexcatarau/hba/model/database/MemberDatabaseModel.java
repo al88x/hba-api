@@ -7,13 +7,22 @@ public class MemberDatabaseModel {
     private String middleName;
     private String lastName;
     private String username;
-    private Integer employeeNumber;
+    private Long employeeNumber;
+    private String email;
 
-    public Integer getEmployeeNumber() {
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Long getEmployeeNumber() {
         return employeeNumber;
     }
 
-    public void setEmployeeNumber(Integer employeeNumber) {
+    public void setEmployeeNumber(Long employeeNumber) {
         this.employeeNumber = employeeNumber;
     }
 

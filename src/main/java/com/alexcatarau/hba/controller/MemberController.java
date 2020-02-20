@@ -33,6 +33,15 @@ public class MemberController {
         return ResponseEntity.ok().body(new MemberListResponseModel(memberList, filter, numberOfMembers));
     }
 
+    @GetMapping("/searchById")
+    public ResponseEntity getMemberById(@RequestParam String id){
+        Optional<MemberDatabaseModel> memberById = memberService.getMemberById(id);
+        if(memberById.isPresent()){
+            return ResponseEntity.ok().body(memberById);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
     @GetMapping("/search")
     public ResponseEntity getMemberBySearchValue(@RequestParam String value, @RequestParam String filter) {
         List<MemberDatabaseModel> membersList = null;
@@ -40,13 +49,7 @@ public class MemberController {
             membersList = memberService.getMemberByName(value);
         }
         if (filter.equals("employee-number")) {
-            Integer employeeNumber = null;
-            try {
-                employeeNumber = Integer.valueOf(value);
-            } catch (NumberFormatException e) {
-                return ResponseEntity.badRequest().build();
-            }
-            membersList = memberService.getMemberByEmployeeNumber(employeeNumber);
+            membersList = memberService.getMemberByEmployeeNumber(value);
         }
         if (membersList != null && membersList.size() > 0) {
             return ResponseEntity.ok().body(membersList);
