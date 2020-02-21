@@ -4,6 +4,8 @@ import com.alexcatarau.hba.model.database.MemberDatabaseModel;
 import com.alexcatarau.hba.model.request.MemberCreateRequestModel;
 import com.alexcatarau.hba.model.request.MemberRequestFilter;
 import com.alexcatarau.hba.model.response.MemberListResponseModel;
+import com.alexcatarau.hba.security.utils.JwtUtils;
+import com.alexcatarau.hba.service.EmailService;
 import com.alexcatarau.hba.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +22,12 @@ import java.util.Optional;
 public class MemberController {
 
     private MemberService memberService;
+    private EmailService emailService;
 
     @Autowired
-    public MemberController(MemberService memberService) {
+    public MemberController(MemberService memberService, EmailService emailService) {
         this.memberService = memberService;
+        this.emailService = emailService;
     }
 
     @GetMapping
@@ -75,6 +79,9 @@ public class MemberController {
         }
 
         Long id = memberService.createMember(memberCreateRequestModel);
+
+        String confirmationToken = JwtUtils.createJwtToken(id.toString(), 259200000);//3days
+        emailService.sendEmailNewAccount(memberCreateRequestModel.getFirstName(), memberCreateRequestModel.getEmail(),confirmationToken);
         return ResponseEntity.ok().body(Collections.singletonMap("userId", id));
     }
 }

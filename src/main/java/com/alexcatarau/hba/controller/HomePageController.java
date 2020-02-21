@@ -3,6 +3,7 @@ package com.alexcatarau.hba.controller;
 import com.alexcatarau.hba.model.database.UserDatabaseModel;
 import com.alexcatarau.hba.model.response.UserResponseModel;
 import com.alexcatarau.hba.security.utils.JwtProperties;
+import com.alexcatarau.hba.security.utils.JwtUtils;
 import com.alexcatarau.hba.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,7 @@ public class HomePageController {
     @GetMapping
     public ResponseEntity getUserInfo(@CookieValue("jwt") String tokenWithPrefix) {
         String token = tokenWithPrefix.replace(TOKEN_PREFIX, "");
-        String username = JwtProperties.getUsernameFromToken(token);
+        String username = JwtUtils.getUsernameFromToken(token);
         UserDatabaseModel user = userService.findByUsername(username).get();
 
         return ResponseEntity.ok(new UserResponseModel(user.getUsername(), user.getRoleList().get(0)));
