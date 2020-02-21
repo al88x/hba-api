@@ -79,7 +79,7 @@ public class MemberController {
         }
 
         Long id = memberService.createMember(memberCreateRequestModel);
-
+        System.out.println(id.toString());
         String confirmationToken = JwtUtils.createJwtToken(id.toString(), 259200000);//3days
         emailService.sendEmailNewAccount(memberCreateRequestModel.getFirstName(), memberCreateRequestModel.getEmail(),confirmationToken);
         return ResponseEntity.ok().body(Collections.singletonMap("userId", id));

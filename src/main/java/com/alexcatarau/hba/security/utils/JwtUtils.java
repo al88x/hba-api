@@ -8,16 +8,16 @@ import static com.auth0.jwt.algorithms.Algorithm.HMAC512;
 
 public class JwtUtils {
 
-    public static String getUsernameFromToken(String token){
+    public static String getMemberDetailsFromToken(String token){
         return JWT.require(HMAC512(JwtProperties.SECRET.getBytes()))
                 .build()
                 .verify(token)
                 .getSubject();
     }
 
-    public static String createJwtToken(String username, Integer expirationTimeInMilliseconds){
+    public static String createJwtToken(String memberInfo, Integer expirationTimeInMilliseconds){
         return JWT.create()
-                .withSubject(username)
+                .withSubject(memberInfo)
                 .withExpiresAt(new Date(System.currentTimeMillis() + expirationTimeInMilliseconds))
                 .sign(HMAC512(JwtProperties.SECRET.getBytes()));
     }

@@ -119,4 +119,19 @@ public class MemberService {
                 .mapTo(Boolean.class)
                 .one());
     }
+
+    public boolean isMemberPendingConfirmation(Long id) {
+        return jdbi.withHandle(handle -> handle.createQuery("select exists(select 1 from members where (id =:id and pending_confirmation = true));")
+                .bind("id", id)
+                .mapTo(Boolean.class)
+                .one());
+    }
+
+    public boolean isEmployeeNumberValid(String employeeNumber, Long id) {
+        return jdbi.withHandle(handle -> handle.createQuery("select exists(select 1 from members where (id =:id and employee_number = :employeeNumber));")
+                .bind("id", id)
+                .bind("employeeNumber", employeeNumber)
+                .mapTo(Boolean.class)
+                .one());
+    }
 }
