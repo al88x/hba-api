@@ -16,7 +16,7 @@ public class EmailService {
     }
 
 
-    public void sendEmailNewAccount(String firstName, String email, String confirmationToken) {
+    public void sendEmailNewAccountLink(String firstName, String email, String confirmationToken) {
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(System.getenv("EMAIL_USERNAME"));

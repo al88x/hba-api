@@ -38,9 +38,9 @@ public class MemberController {
     }
 
     @GetMapping("/searchById")
-    public ResponseEntity getMemberById(@RequestParam String id){
+    public ResponseEntity getMemberById(@RequestParam String id) {
         Optional<MemberDatabaseModel> memberById = memberService.getMemberById(id);
-        if(memberById.isPresent()){
+        if (memberById.isPresent()) {
             return ResponseEntity.ok().body(memberById);
         }
         return ResponseEntity.notFound().build();
@@ -75,13 +75,25 @@ public class MemberController {
 
         boolean isDuplicateEmail = memberService.checkDuplicateEmail(memberCreateRequestModel.getEmail());
         if (isDuplicateEmail) {
-                return ResponseEntity.badRequest().body(Collections.singletonMap("email", "Email already being used."));
+            return ResponseEntity.badRequest().body(Collections.singletonMap("email", "Email already being used."));
         }
 
         Long id = memberService.createMember(memberCreateRequestModel);
         System.out.println(id.toString());
-        String confirmationToken = JwtUtils.createJwtToken(id.toString(), 259200000);//3days
-        emailService.sendEmailNewAccount(memberCreateRequestModel.getFirstName(), memberCreateRequestModel.getEmail(),confirmationToken);
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String confirmationToken = JwtUtils.createJwtToken(id.toString(), 259200000);//3days
+                    emailService.sendEmailNewAccountLink(memberCreateRequestModel.getFirstName(), memberCreateRequestModel.getEmail(), confirmationToken);
+                    memberService.setConfirmationMailSent(true, id);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    memberService.setConfirmationMailSent(false, id);
+                }
+            }
+        });
+        thread.start();
         return ResponseEntity.ok().body(Collections.singletonMap("userId", id));
     }
 }

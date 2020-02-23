@@ -66,18 +66,9 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult){
-        // Grab principal
         UserPrincipal principal = (UserPrincipal) authResult.getPrincipal();
-
-        // Create JWT Token
         String token = JwtUtils.createJwtToken(principal.getUsername(), JwtProperties.EXPIRATION_TIME);
-
-        // Add token in response
-        Cookie cookie = new Cookie("jwt", JwtProperties.TOKEN_PREFIX +  token);
-        cookie.setPath("/");
-//        cookie.setSecure(true);
-        cookie.setHttpOnly(true);
-        cookie.setMaxAge(86400); // 1 day in seconds
+        Cookie cookie = JwtUtils.createCookieWithToken(token);
 
         response.addCookie(cookie);
     }

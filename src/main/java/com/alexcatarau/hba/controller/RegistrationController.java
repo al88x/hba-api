@@ -1,6 +1,8 @@
 package com.alexcatarau.hba.controller;
 
+import com.alexcatarau.hba.model.request.MemberDetailsRequestModel;
 import com.alexcatarau.hba.model.request.SetupPasswordRequestModel;
+import com.alexcatarau.hba.security.utils.JwtProperties;
 import com.alexcatarau.hba.security.utils.JwtUtils;
 import com.alexcatarau.hba.service.MemberService;
 import com.alexcatarau.hba.service.RegistrationService;
@@ -8,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
 
 @RestController
@@ -28,7 +32,7 @@ public class RegistrationController {
     public ResponseEntity getMemberIdFromToken(@RequestParam String token, @RequestParam(required = false) String employeeNumber) {
         if (token != null) {
             Long id = Long.valueOf(JwtUtils.getMemberDetailsFromToken(token));
-                System.out.println("id: " + id + ", employeeNumber: " + employeeNumber);
+            System.out.println("id: " + id + ", employeeNumber: " + employeeNumber);
             if (employeeNumber != null) {
                 if (memberService.isEmployeeNumberValid(employeeNumber, id)) {
                     return ResponseEntity.ok().build();
@@ -47,6 +51,20 @@ public class RegistrationController {
         Long id = Long.valueOf(JwtUtils.getMemberDetailsFromToken(model.getToken()));
         if (memberService.isMemberPendingConfirmation(id)) {
             registrationService.saveNewPassword(id, model.getPassword());
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
+    @PostMapping("confirm/pageThree")
+    public ResponseEntity saveMemberDetails(@RequestBody MemberDetailsRequestModel model, HttpServletResponse response) {
+        Long id = Long.valueOf(JwtUtils.getMemberDetailsFromToken(model.getToken()));
+        if (memberService.isMemberPendingConfirmation(id)) {
+            String username = registrationService.saveMemberDetails(id, model);
+
+            String jwtToken = JwtUtils.createJwtToken(username, JwtProperties.EXPIRATION_TIME);
+            Cookie cookie = JwtUtils.createCookieWithToken(jwtToken);
+            response.addCookie(cookie);
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();
