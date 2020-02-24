@@ -106,7 +106,7 @@ public class MemberService {
                 .one());
     }
 
-    public boolean checkDuplicateEmail(String email) {
+    public boolean emailExistsInDatabase(String email) {
         return jdbi.withHandle(handle -> handle.createQuery("select exists(select 1 from members where email = :email);")
                 .bind("email", email)
                 .mapTo(Boolean.class)
@@ -139,6 +139,12 @@ public class MemberService {
         jdbi.withHandle(handle -> handle.createUpdate("UPDATE members SET confirmation_mail_sent = :sent where id=:id ;")
                 .bind("sent", b)
                 .bind("id", id)
+                .execute());
+    }
+
+    public void lockAccountAndSetAccountToConfirmationPending(String email) {
+        jdbi.withHandle(handle -> handle.createUpdate("UPDATE members SET pending_confirmation = true, active = false where email=:email;")
+                .bind("email", email)
                 .execute());
     }
 }

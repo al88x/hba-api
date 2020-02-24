@@ -73,7 +73,7 @@ public class MemberController {
             return ResponseEntity.badRequest().body(Collections.singletonMap("employeeNumber", "Employee Number already being used."));
         }
 
-        boolean isDuplicateEmail = memberService.checkDuplicateEmail(memberCreateRequestModel.getEmail());
+        boolean isDuplicateEmail = memberService.emailExistsInDatabase(memberCreateRequestModel.getEmail());
         if (isDuplicateEmail) {
             return ResponseEntity.badRequest().body(Collections.singletonMap("email", "Email already being used."));
         }

@@ -62,7 +62,7 @@ public class RegistrationController {
         if (memberService.isMemberPendingConfirmation(id)) {
             String username = registrationService.saveMemberDetails(id, model);
 
-            String jwtToken = JwtUtils.createJwtToken(username, JwtProperties.EXPIRATION_TIME);
+            String jwtToken = JwtUtils.createJwtToken(username, JwtProperties.ONE_DAY_EXPIRATION_TIME);
             Cookie cookie = JwtUtils.createCookieWithToken(jwtToken);
             response.addCookie(cookie);
             return ResponseEntity.ok().build();
