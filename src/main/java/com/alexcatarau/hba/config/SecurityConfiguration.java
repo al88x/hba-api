@@ -19,6 +19,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 
+import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
@@ -56,6 +57,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 // configure access rules
                 .antMatchers(POST, "/login").permitAll()
+                .antMatchers(GET, "/register/confirm").permitAll()
+                .antMatchers(POST, "/register/confirm/pageTwo").permitAll()
+                .antMatchers(POST, "/register/confirm/pageThree").permitAll()
                 .antMatchers("/user/*").hasRole("USER")
                 .antMatchers("/admin/*").hasRole("ADMIN")
                 .anyRequest().authenticated();

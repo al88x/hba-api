@@ -1,10 +1,8 @@
 package com.alexcatarau.hba.security;
 
 import com.alexcatarau.hba.model.database.UserDatabaseModel;
-import com.alexcatarau.hba.security.utils.JwtProperties;
+import com.alexcatarau.hba.security.utils.JwtUtils;
 import com.alexcatarau.hba.service.UserService;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.exceptions.JWTDecodeException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -65,7 +63,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
             // parse the token and validate it
 
 
-            String userName = JwtProperties.getUsernameFromToken(token);
+            String userName = JwtUtils.getMemberDetailsFromToken(token);
 
 
             // Search in the DB if we find the user by token subject (username)

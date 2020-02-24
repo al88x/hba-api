@@ -2,6 +2,7 @@ package com.alexcatarau.hba.security;
 
 import com.alexcatarau.hba.model.request.LoginRequestModel;
 import com.alexcatarau.hba.security.utils.JwtProperties;
+import com.alexcatarau.hba.security.utils.JwtUtils;
 import com.auth0.jwt.JWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,21 +66,9 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult){
-        // Grab principal
         UserPrincipal principal = (UserPrincipal) authResult.getPrincipal();
-
-        // Create JWT Token
-        String token = JWT.create()
-                .withSubject(principal.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.EXPIRATION_TIME))
-                .sign(HMAC512(JwtProperties.SECRET.getBytes()));
-
-        // Add token in response
-        Cookie cookie = new Cookie("jwt", JwtProperties.TOKEN_PREFIX +  token);
-        cookie.setPath("/");
-//        cookie.setSecure(true);
-        cookie.setHttpOnly(true);
-        cookie.setMaxAge(86400); // 1 day in seconds
+        String token = JwtUtils.createJwtToken(principal.getUsername(), JwtProperties.EXPIRATION_TIME);
+        Cookie cookie = JwtUtils.createCookieWithToken(token);
 
         response.addCookie(cookie);
     }

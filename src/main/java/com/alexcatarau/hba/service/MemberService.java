@@ -20,7 +20,7 @@ public class MemberService {
         this.jdbi = jdbi;
     }
 
-    private final String GET_ALL_SUSPECTS_WITH_FILTER = "SELECT id, first_name, middle_name, last_name, username from members " +
+    private final String GET_ALL_SUSPECTS_WITH_FILTER = "SELECT id, first_name, last_name, username from members " +
             "where roles = 'USER' order by first_name LIMIT :limit OFFSET :offset;";
 
     public Integer countMembers() {
@@ -52,7 +52,7 @@ public class MemberService {
                 .list());
     }
 
-    public Optional<MemberDatabaseModel> getMemberById(String id){
+    public Optional<MemberDatabaseModel> getMemberById(String id) {
         return jdbi.withHandle(handle -> handle.createQuery("select * from members where id = :id;")
                 .bind("id", Long.parseLong(id))
                 .mapToBean(MemberDatabaseModel.class)
@@ -78,28 +78,28 @@ public class MemberService {
 
     private String createUniqueUsername(String username) {
         boolean usernameExists = isUsernameDuplicate(username);
-        if(!usernameExists){
+        if (!usernameExists) {
             return username;
         }
 
         String uniqueUsername = username;
-        while(usernameExists){
-         uniqueUsername = incrementUsername(uniqueUsername);
-         usernameExists = isUsernameDuplicate(uniqueUsername);
+        while (usernameExists) {
+            uniqueUsername = incrementUsername(uniqueUsername);
+            usernameExists = isUsernameDuplicate(uniqueUsername);
         }
         return uniqueUsername;
     }
 
     private String incrementUsername(String uniqueUsername) {
-        if(uniqueUsername.length() == 6){
+        if (uniqueUsername.length() == 6) {
             return uniqueUsername + 1;
         }
         int count = Integer.parseInt(uniqueUsername.substring(6));
-        return uniqueUsername.substring(0,6) + (count+1);
+        return uniqueUsername.substring(0, 6) + (count + 1);
     }
 
 
-    private boolean isUsernameDuplicate(String username){
+    private boolean isUsernameDuplicate(String username) {
         return jdbi.withHandle(handle -> handle.createQuery("select exists(select 1 from members where username = :username);")
                 .bind("username", username)
                 .mapTo(Boolean.class)
@@ -118,5 +118,27 @@ public class MemberService {
                 .bind("employeeNumber", employeeNumber)
                 .mapTo(Boolean.class)
                 .one());
+    }
+
+    public boolean isMemberPendingConfirmation(Long id) {
+        return jdbi.withHandle(handle -> handle.createQuery("select exists(select 1 from members where (id =:id and pending_confirmation = true));")
+                .bind("id", id)
+                .mapTo(Boolean.class)
+                .one());
+    }
+
+    public boolean isEmployeeNumberValid(String employeeNumber, Long id) {
+        return jdbi.withHandle(handle -> handle.createQuery("select exists(select 1 from members where (id =:id and employee_number = :employeeNumber));")
+                .bind("id", id)
+                .bind("employeeNumber", employeeNumber)
+                .mapTo(Boolean.class)
+                .one());
+    }
+
+    public void setConfirmationMailSent(boolean b, Long id) {
+        jdbi.withHandle(handle -> handle.createUpdate("UPDATE members SET confirmation_mail_sent = :sent where id=:id ;")
+                .bind("sent", b)
+                .bind("id", id)
+                .execute());
     }
 }
