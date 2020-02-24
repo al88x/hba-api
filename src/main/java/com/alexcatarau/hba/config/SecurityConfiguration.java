@@ -63,6 +63,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/user/*").hasRole("USER")
                 .antMatchers("/admin/*").hasRole("ADMIN")
                 .anyRequest().authenticated();
+
+        http.logout()
+                .logoutUrl("/logout")
+                .invalidateHttpSession(true)
+                .deleteCookies("jwt");
     }
 
 
