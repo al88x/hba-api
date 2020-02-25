@@ -47,6 +47,6 @@ public class MemberCreateRequestModel {
     }
 
     public String getUsernameFromName() {
-        return firstName.substring(0,3) + lastName.substring(0,3);
+        return (firstName.substring(0,3) + lastName.substring(0,3)).toLowerCase();
     }
 }
