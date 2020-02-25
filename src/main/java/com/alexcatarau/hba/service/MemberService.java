@@ -52,9 +52,9 @@ public class MemberService {
                 .list());
     }
 
-    public Optional<MemberDatabaseModel> getMemberById(String id) {
+    public Optional<MemberDatabaseModel> getMemberById(Long id) {
         return jdbi.withHandle(handle -> handle.createQuery("select * from members where id = :id;")
-                .bind("id", Long.parseLong(id))
+                .bind("id", id)
                 .mapToBean(MemberDatabaseModel.class)
                 .findFirst());
     }
@@ -106,11 +106,11 @@ public class MemberService {
                 .one());
     }
 
-    public boolean checkDuplicateEmail(String email) {
-        return jdbi.withHandle(handle -> handle.createQuery("select exists(select 1 from members where email = :email);")
+    public Optional<Long> emailExistsInDatabase(String email) {
+        return jdbi.withHandle(handle -> handle.createQuery("select id from members where email = :email;")
                 .bind("email", email)
-                .mapTo(Boolean.class)
-                .one());
+                .mapTo(Long.class)
+                .findOne());
     }
 
     public boolean checkDuplicateEmployeeNumber(String employeeNumber) {
@@ -138,6 +138,18 @@ public class MemberService {
     public void setConfirmationMailSent(boolean b, Long id) {
         jdbi.withHandle(handle -> handle.createUpdate("UPDATE members SET confirmation_mail_sent = :sent where id=:id ;")
                 .bind("sent", b)
+                .bind("id", id)
+                .execute());
+    }
+
+    public void lockAccountAndSetAccountToConfirmationPending(String email) {
+        jdbi.withHandle(handle -> handle.createUpdate("UPDATE members SET pending_confirmation = true, active = false where email=:email;")
+                .bind("email", email)
+                .execute());
+    }
+
+    public void unlockAccountAndSetConfirmationToNotPending(Long id) {
+        jdbi.withHandle(handle -> handle.createUpdate("UPDATE members SET pending_confirmation = false, active = true where id=:id;")
                 .bind("id", id)
                 .execute());
     }

@@ -3,14 +3,12 @@ package com.alexcatarau.hba.security;
 import com.alexcatarau.hba.model.request.LoginRequestModel;
 import com.alexcatarau.hba.security.utils.JwtProperties;
 import com.alexcatarau.hba.security.utils.JwtUtils;
-import com.auth0.jwt.JWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -20,8 +18,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
 
 import static com.auth0.jwt.algorithms.Algorithm.HMAC512;
 
@@ -67,7 +63,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult){
         UserPrincipal principal = (UserPrincipal) authResult.getPrincipal();
-        String token = JwtUtils.createJwtToken(principal.getUsername(), JwtProperties.EXPIRATION_TIME);
+        String token = JwtUtils.createJwtToken(principal.getUsername(), JwtProperties.ONE_DAY_EXPIRATION_TIME);
         Cookie cookie = JwtUtils.createCookieWithToken(token);
 
         response.addCookie(cookie);

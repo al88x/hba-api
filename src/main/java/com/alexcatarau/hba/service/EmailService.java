@@ -28,7 +28,22 @@ public class EmailService {
     private String createEmailMessage(String firstName, String confirmationToken) {
         return "Hi " + firstName+",\n\n" +
                 "Welcome to your new holiday booking account.\n\n" +
-                "Please follow the following link to finish registration: \n" +
+                "Please click the following link to finish registration: \n" +
                 System.getenv("CONFIRM_REGISTRATION_PATH") + confirmationToken;
+    }
+
+    public void sendResetPasswordEmail(String email, String token) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(System.getenv("EMAIL_USERNAME"));
+        message.setSubject("HBA - reset password");
+        message.setText(createResetPasswordEmailMessage(token));
+        emailSender.send(message);
+    }
+
+    private String createResetPasswordEmailMessage(String token) {
+        return "Hi, \n\n" +
+                "Please click the following link to reset the password: \n" +
+                System.getenv("RESET_PASSWORD_PATH") + token;
+
     }
 }
