@@ -39,7 +39,7 @@ public class MemberController {
 
     @GetMapping("/searchById")
     public ResponseEntity getMemberById(@RequestParam String id) {
-        Optional<MemberDatabaseModel> memberById = memberService.getMemberById(id);
+        Optional<MemberDatabaseModel> memberById = memberService.getMemberById(Long.parseLong(id));
         if (memberById.isPresent()) {
             return ResponseEntity.ok().body(memberById);
         }
@@ -73,27 +73,27 @@ public class MemberController {
             return ResponseEntity.badRequest().body(Collections.singletonMap("employeeNumber", "Employee Number already being used."));
         }
 
-        boolean isDuplicateEmail = memberService.emailExistsInDatabase(memberCreateRequestModel.getEmail());
-        if (isDuplicateEmail) {
+        Optional<Long> existingMemberId = memberService.emailExistsInDatabase(memberCreateRequestModel.getEmail());
+        if (existingMemberId.isPresent()) {
             return ResponseEntity.badRequest().body(Collections.singletonMap("email", "Email already being used."));
         }
 
-        Long id = memberService.createMember(memberCreateRequestModel);
-        System.out.println(id.toString());
+        Long newMemberId = memberService.createMember(memberCreateRequestModel);
+        System.out.println(newMemberId.toString());
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    String confirmationToken = JwtUtils.createJwtToken(id.toString(), 259200000);//3days
+                    String confirmationToken = JwtUtils.createJwtToken(newMemberId.toString(), 259200000);//3days
                     emailService.sendEmailNewAccountLink(memberCreateRequestModel.getFirstName(), memberCreateRequestModel.getEmail(), confirmationToken);
-                    memberService.setConfirmationMailSent(true, id);
+                    memberService.setConfirmationMailSent(true, newMemberId);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    memberService.setConfirmationMailSent(false, id);
+                    memberService.setConfirmationMailSent(false, newMemberId);
                 }
             }
         });
         thread.start();
-        return ResponseEntity.ok().body(Collections.singletonMap("userId", id));
+        return ResponseEntity.ok().body(Collections.singletonMap("userId", newMemberId));
     }
 }
