@@ -27,7 +27,7 @@ public class RegistrationService {
     }
 
     public String saveMemberDetails(Long id, MemberDetailsRequestModel model) {
-        return jdbi.withHandle(handle -> handle.createQuery("UPDATE members SET shift = :shift, job_role = :jobRole, department = :department, area = :area, active = true, pending_confirmation = false where id=:id RETURNING username;")
+        return jdbi.withHandle(handle -> handle.createQuery("UPDATE members SET shift = :shift, job_role = :jobRole, department = :department, area = :area, active = true, pending_account_registration = false where id=:id RETURNING username;")
         .bind("shift", model.getShift())
                 .bind("id", id)
                 .bind("jobRole", model.getJobRole())

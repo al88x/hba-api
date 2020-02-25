@@ -56,7 +56,7 @@ public class HomePageController {
                 @Override
                 public void run() {
                     emailService.sendResetPasswordEmail(email, token);
-                    memberService.lockAccountAndSetAccountToConfirmationPending(email);
+                    memberService.lockAccountAndSetAccountToResetPasswordPending(email);
                 }
             });
             thread.start();
@@ -67,9 +67,9 @@ public class HomePageController {
     @GetMapping("/resetPassword")
     public ResponseEntity setupNewPassword(@RequestBody SetupPasswordRequestModel model, HttpServletResponse response) {
         Long id = Long.valueOf(JwtUtils.getMemberDetailsFromToken(model.getToken()));
-        if (memberService.isMemberPendingConfirmation(id)) {
+        if (memberService.isMemberPendingResetPassword(id)) {
             registrationService.saveNewPassword(id, model.getPassword());
-            memberService.unlockAccountAndSetConfirmationToNotPending(id);
+            memberService.unlockAccountAndSetResetPasswordToNotPending(id);
             MemberDatabaseModel memberById = memberService.getMemberById(id).get();
 
             String loginToken = JwtUtils.createJwtToken(memberById.getUsername(), JwtProperties.ONE_DAY_EXPIRATION_TIME);

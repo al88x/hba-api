@@ -33,7 +33,7 @@ public abstract class ListResponseModel<TItem, TFilter extends MemberRequestFilt
             return null;
         }
 
-        UriBuilder builder = UriComponentsBuilder.fromPath("/suspects")
+        UriBuilder builder = UriComponentsBuilder.fromPath("/members")
                 .queryParam("page", filter.getPage() - 1)
                 .queryParam("pageSize", filter.getPageSize());
 

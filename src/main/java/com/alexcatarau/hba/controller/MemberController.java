@@ -86,10 +86,10 @@ public class MemberController {
                 try {
                     String confirmationToken = JwtUtils.createJwtToken(newMemberId.toString(), 259200000);//3days
                     emailService.sendEmailNewAccountLink(memberCreateRequestModel.getFirstName(), memberCreateRequestModel.getEmail(), confirmationToken);
-                    memberService.setConfirmationMailSent(true, newMemberId);
+                    memberService.setRegistrationMailSent(true, newMemberId);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    memberService.setConfirmationMailSent(false, newMemberId);
+                    memberService.setRegistrationMailSent(false, newMemberId);
                 }
             }
         });

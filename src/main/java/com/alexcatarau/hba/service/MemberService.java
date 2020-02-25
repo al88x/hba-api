@@ -20,7 +20,7 @@ public class MemberService {
         this.jdbi = jdbi;
     }
 
-    private final String GET_ALL_SUSPECTS_WITH_FILTER = "SELECT id, first_name, last_name, username from members " +
+    private final String GET_ALL_MEMBERS_WITH_FILTER = "SELECT id, first_name, last_name, username, active from members " +
             "where roles = 'USER' order by first_name LIMIT :limit OFFSET :offset;";
 
     public Integer countMembers() {
@@ -31,7 +31,7 @@ public class MemberService {
     }
 
     public List<MemberDatabaseModel> getAllMembers(MemberRequestFilter filter) {
-        return jdbi.withHandle(handle -> handle.createQuery(GET_ALL_SUSPECTS_WITH_FILTER)
+        return jdbi.withHandle(handle -> handle.createQuery(GET_ALL_MEMBERS_WITH_FILTER)
                 .bind("limit", filter.getPageSize())
                 .bind("offset", filter.getOffset())
                 .mapToBean(MemberDatabaseModel.class)
@@ -60,8 +60,8 @@ public class MemberService {
     }
 
     public Long createMember(MemberCreateRequestModel memberCreateRequestModel) {
-        return jdbi.withHandle(handle -> handle.createQuery("insert into members (first_name, last_name, employee_number, username, email, password, roles, active, pending_confirmation) " +
-                "values (:firstName, :lastName, :employeeNumber, :username, :email, :password, :roles, :active, :pendingConfirmation) RETURNING id;")
+        return jdbi.withHandle(handle -> handle.createQuery("insert into members (first_name, last_name, employee_number, username, email, password, roles, active, pending_account_registration) " +
+                "values (:firstName, :lastName, :employeeNumber, :username, :email, :password, :roles, :active, :pendingAccountRegistration) RETURNING id;")
                 .bind("firstName", memberCreateRequestModel.getFirstName())
                 .bind("lastName", memberCreateRequestModel.getLastName())
                 .bind("employeeNumber", memberCreateRequestModel.getEmployeeNumber())
@@ -70,7 +70,7 @@ public class MemberService {
                 .bind("password", System.getenv("DEFAULT_USER_PASSWORD"))
                 .bind("roles", "USER")
                 .bind("active", false)
-                .bind("pendingConfirmation", true)
+                .bind("pendingAccountRegistration", true)
                 .mapTo(Long.class)
                 .one());
     }
@@ -120,8 +120,8 @@ public class MemberService {
                 .one());
     }
 
-    public boolean isMemberPendingConfirmation(Long id) {
-        return jdbi.withHandle(handle -> handle.createQuery("select exists(select 1 from members where (id =:id and pending_confirmation = true));")
+    public boolean isMemberPendingAccountRegistration(Long id) {
+        return jdbi.withHandle(handle -> handle.createQuery("select exists(select 1 from members where (id =:id and pending_account_registration = true));")
                 .bind("id", id)
                 .mapTo(Boolean.class)
                 .one());
@@ -135,22 +135,29 @@ public class MemberService {
                 .one());
     }
 
-    public void setConfirmationMailSent(boolean b, Long id) {
-        jdbi.withHandle(handle -> handle.createUpdate("UPDATE members SET confirmation_mail_sent = :sent where id=:id ;")
+    public void setRegistrationMailSent(boolean b, Long id) {
+        jdbi.withHandle(handle -> handle.createUpdate("UPDATE members SET registration_mail_sent  = :sent where id=:id ;")
                 .bind("sent", b)
                 .bind("id", id)
                 .execute());
     }
 
-    public void lockAccountAndSetAccountToConfirmationPending(String email) {
-        jdbi.withHandle(handle -> handle.createUpdate("UPDATE members SET pending_confirmation = true, active = false where email=:email;")
+    public void lockAccountAndSetAccountToResetPasswordPending(String email) {
+        jdbi.withHandle(handle -> handle.createUpdate("UPDATE members SET pending_reset_password = true, active = false where email=:email;")
                 .bind("email", email)
                 .execute());
     }
 
-    public void unlockAccountAndSetConfirmationToNotPending(Long id) {
-        jdbi.withHandle(handle -> handle.createUpdate("UPDATE members SET pending_confirmation = false, active = true where id=:id;")
+    public void unlockAccountAndSetResetPasswordToNotPending(Long id) {
+        jdbi.withHandle(handle -> handle.createUpdate("UPDATE members SET pending_reset_password = false, active = true where id=:id;")
                 .bind("id", id)
                 .execute());
+    }
+
+    public boolean isMemberPendingResetPassword(Long id) {
+        return jdbi.withHandle(handle -> handle.createQuery("select exists(select 1 from members where (id =:id and pending_reset_password = true));")
+                .bind("id", id)
+                .mapTo(Boolean.class)
+                .one());
     }
 }

@@ -4,11 +4,19 @@ public class MemberDatabaseModel {
 
     private Long id;
     private String firstName;
-    private String middleName;
     private String lastName;
     private String username;
     private Long employeeNumber;
     private String email;
+    private boolean active;
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
 
     public String getEmail() {
         return email;
@@ -40,14 +48,6 @@ public class MemberDatabaseModel {
 
     public void setFirstName(String firstName) {
         this.firstName = firstName;
-    }
-
-    public String getMiddleName() {
-        return middleName;
-    }
-
-    public void setMiddleName(String middleName) {
-        this.middleName = middleName;
     }
 
     public String getLastName() {

@@ -32,13 +32,12 @@ public class RegistrationController {
     public ResponseEntity getMemberIdFromToken(@RequestParam String token, @RequestParam(required = false) String employeeNumber) {
         if (token != null) {
             Long id = Long.valueOf(JwtUtils.getMemberDetailsFromToken(token));
-            System.out.println("id: " + id + ", employeeNumber: " + employeeNumber);
             if (employeeNumber != null) {
                 if (memberService.isEmployeeNumberValid(employeeNumber, id)) {
                     return ResponseEntity.ok().build();
                 }
             } else {
-                if (memberService.isMemberPendingConfirmation(id)) {
+                if (memberService.isMemberPendingAccountRegistration(id)) {
                     return ResponseEntity.ok().body(Collections.singletonMap("memberId", Long.valueOf(id)));
                 }
             }
@@ -49,7 +48,7 @@ public class RegistrationController {
     @PostMapping("confirm/pageTwo")
     public ResponseEntity setupNewPassword(@RequestBody SetupPasswordRequestModel model) {
         Long id = Long.valueOf(JwtUtils.getMemberDetailsFromToken(model.getToken()));
-        if (memberService.isMemberPendingConfirmation(id)) {
+        if (memberService.isMemberPendingAccountRegistration(id)) {
             registrationService.saveNewPassword(id, model.getPassword());
             return ResponseEntity.ok().build();
         }
@@ -59,7 +58,7 @@ public class RegistrationController {
     @PostMapping("confirm/pageThree")
     public ResponseEntity saveMemberDetails(@RequestBody MemberDetailsRequestModel model, HttpServletResponse response) {
         Long id = Long.valueOf(JwtUtils.getMemberDetailsFromToken(model.getToken()));
-        if (memberService.isMemberPendingConfirmation(id)) {
+        if (memberService.isMemberPendingAccountRegistration(id)) {
             String username = registrationService.saveMemberDetails(id, model);
             String jwtToken = JwtUtils.createJwtToken(username, JwtProperties.ONE_DAY_EXPIRATION_TIME);
             Cookie cookie = JwtUtils.createCookieWithToken(jwtToken);
