@@ -160,4 +160,16 @@ public class MemberService {
                 .mapTo(Boolean.class)
                 .one());
     }
+
+    public void lockAccount(Long id) {
+        jdbi.withHandle(handle -> handle.createUpdate("UPDATE members SET active = false where id=:id;")
+                .bind("id", id)
+                .execute());
+    }
+
+    public void activateAccount(long id) {
+        jdbi.withHandle(handle -> handle.createUpdate("UPDATE members SET active = true where id=:id;")
+                .bind("id", id)
+                .execute());
+    }
 }

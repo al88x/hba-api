@@ -8,7 +8,52 @@ public class MemberDatabaseModel {
     private String username;
     private Long employeeNumber;
     private String email;
+    private String shift;
+    private String jobRole;
+    private String department;
+    private String area;
     private boolean active;
+    private boolean pendingAccountRegistration;
+
+    public String getShift() {
+        return shift;
+    }
+
+    public void setShift(String shift) {
+        this.shift = shift;
+    }
+
+    public String getJobRole() {
+        return jobRole;
+    }
+
+    public void setJobRole(String jobRole) {
+        this.jobRole = jobRole;
+    }
+
+    public String getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
+    }
+
+    public String getArea() {
+        return area;
+    }
+
+    public void setArea(String area) {
+        this.area = area;
+    }
+
+    public boolean isPendingAccountRegistration() {
+        return pendingAccountRegistration;
+    }
+
+    public void setPendingAccountRegistration(boolean pendingAccountRegistration) {
+        this.pendingAccountRegistration = pendingAccountRegistration;
+    }
 
     public boolean isActive() {
         return active;
