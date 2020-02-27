@@ -16,20 +16,20 @@ public class EmailService {
     }
 
 
-    public void sendEmailNewAccountLink(String firstName, String email, String confirmationToken) {
+    public void sendEmailNewAccountLink(String firstName, String email, String registrationToken) {
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(System.getenv("EMAIL_USERNAME"));
         message.setSubject("Holiday booking account");
-        message.setText(createEmailMessage(firstName, confirmationToken));
+        message.setText(createEmailMessage(firstName, registrationToken));
         emailSender.send(message);
     }
 
-    private String createEmailMessage(String firstName, String confirmationToken) {
+    private String createEmailMessage(String firstName, String registrationToken) {
         return "Hi " + firstName+",\n\n" +
                 "Welcome to your new holiday booking account.\n\n" +
                 "Please click the following link to finish registration: \n" +
-                System.getenv("CONFIRM_REGISTRATION_PATH") + confirmationToken;
+                System.getenv("CONFIRM_REGISTRATION_PATH") + registrationToken;
     }
 
     public void sendResetPasswordEmail(String email, String token) {

@@ -24,4 +24,11 @@ public class UserService {
                 .mapToBean(UserDatabaseModel.class)
                 .findFirst());
     }
+
+    public Optional<UserDatabaseModel> getUsernameOfActiveUser(String username) {
+        return jdbi.withHandle(handle -> handle.createQuery("SELECT * FROM members WHERE username = :username and active = true;")
+                .bind("username", username)
+                .mapToBean(UserDatabaseModel.class)
+                .findFirst());
+    }
 }

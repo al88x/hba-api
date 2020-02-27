@@ -42,7 +42,8 @@ public class HomePageController {
     public ResponseEntity getUserInfo(@CookieValue("jwt") String tokenWithPrefix) {
         String token = tokenWithPrefix.replace(TOKEN_PREFIX, "");
         String username = JwtUtils.getMemberDetailsFromToken(token);
-        UserDatabaseModel user = userService.findByUsername(username).get();
+//        UserDatabaseModel user = userService.findByUsername(username).get();
+        UserDatabaseModel user = userService.getUsernameOfActiveUser(username).get();
 
         return ResponseEntity.ok(new UserResponseModel(user.getUsername(), user.getRoleList().get(0)));
     }
@@ -56,7 +57,7 @@ public class HomePageController {
                 @Override
                 public void run() {
                     emailService.sendResetPasswordEmail(email, token);
-                    memberService.lockAccountAndSetAccountToConfirmationPending(email);
+                    memberService.lockAccountAndSetAccountToResetPasswordPending(email);
                 }
             });
             thread.start();
@@ -64,12 +65,12 @@ public class HomePageController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/resetPassword")
+    @PostMapping("/reset-password")
     public ResponseEntity setupNewPassword(@RequestBody SetupPasswordRequestModel model, HttpServletResponse response) {
         Long id = Long.valueOf(JwtUtils.getMemberDetailsFromToken(model.getToken()));
-        if (memberService.isMemberPendingConfirmation(id)) {
+        if (memberService.isMemberPendingResetPassword(id)) {
             registrationService.saveNewPassword(id, model.getPassword());
-            memberService.unlockAccountAndSetConfirmationToNotPending(id);
+            memberService.unlockAccountAndSetResetPasswordToNotPending(id);
             MemberDatabaseModel memberById = memberService.getMemberById(id).get();
 
             String loginToken = JwtUtils.createJwtToken(memberById.getUsername(), JwtProperties.ONE_DAY_EXPIRATION_TIME);
@@ -78,6 +79,15 @@ public class HomePageController {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();
+    }
+
+    @GetMapping("/validate-reset-password-token")
+    public ResponseEntity validateToken(@RequestParam String token){
+        Long id = Long.valueOf(JwtUtils.getMemberDetailsFromToken(token));
+        if (memberService.isMemberPendingResetPassword(id)) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 
 }

@@ -3,7 +3,9 @@ package com.alexcatarau.hba.controller;
 import com.alexcatarau.hba.model.database.MemberDatabaseModel;
 import com.alexcatarau.hba.model.request.MemberCreateRequestModel;
 import com.alexcatarau.hba.model.request.MemberRequestFilter;
+import com.alexcatarau.hba.model.request.MemberUpdateRequestModel;
 import com.alexcatarau.hba.model.response.MemberListResponseModel;
+import com.alexcatarau.hba.security.utils.JwtProperties;
 import com.alexcatarau.hba.security.utils.JwtUtils;
 import com.alexcatarau.hba.service.EmailService;
 import com.alexcatarau.hba.service.MemberService;
@@ -12,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.Cookie;
 import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
@@ -79,21 +82,79 @@ public class MemberController {
         }
 
         Long newMemberId = memberService.createMember(memberCreateRequestModel);
-        System.out.println(newMemberId.toString());
+        sendRegistrationEmailOnSeparateThread(newMemberId.toString(), memberCreateRequestModel.getFirstName(), memberCreateRequestModel.getEmail());
+        return ResponseEntity.ok().body(Collections.singletonMap("userId", newMemberId));
+    }
+
+    @PostMapping("/lock-account")
+    public ResponseEntity lockAccount(@RequestParam String id){
+        memberService.lockAccount(Long.parseLong(id));
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/activate-account")
+    public ResponseEntity activateAccount(@RequestParam String id){
+        memberService.activateAccount(Long.parseLong(id));
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/send-registration-email")
+    public ResponseEntity sendRegistrationEmail(@RequestParam String id){
+        if(memberService.isMemberPendingAccountRegistration(Long.parseLong(id))){
+            MemberDatabaseModel member = memberService.getMemberById(Long.parseLong(id)).get();
+            sendRegistrationEmailOnSeparateThread(id, member.getFirstName(), member.getEmail());
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
+    @PostMapping("/update")
+    @ResponseBody
+    public ResponseEntity updateMember(@RequestBody @Valid MemberUpdateRequestModel memberUpdateRequestModel, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        MemberDatabaseModel memberDataFromDatabase = memberService.getMemberById(Long.parseLong(memberUpdateRequestModel.getId())).get();
+        if(memberDataFromDatabase.getEmployeeNumber() != Long.parseLong(memberUpdateRequestModel.getEmployeeNumber())){
+            boolean isDuplicateEmployeeNumber = memberService.checkDuplicateEmployeeNumber(memberUpdateRequestModel.getEmployeeNumber());
+            if (isDuplicateEmployeeNumber) {
+                return ResponseEntity.badRequest().body(Collections.singletonMap("employeeNumber", "Employee Number already being used."));
+            }
+        }
+
+        if(!memberDataFromDatabase.getEmail().equals(memberUpdateRequestModel.getEmail())){
+            Optional<Long> existingMemberId = memberService.emailExistsInDatabase(memberUpdateRequestModel.getEmail());
+            if (existingMemberId.isPresent()) {
+                return ResponseEntity.badRequest().body(Collections.singletonMap("email", "Email already being used."));
+            }
+        }
+
+        if(!memberDataFromDatabase.getUsername().equals(memberUpdateRequestModel.getUsername())){
+        boolean isDuplicateUsername = memberService.isUsernameDuplicate(memberUpdateRequestModel.getUsername());
+            if (isDuplicateUsername) {
+                return ResponseEntity.badRequest().body(Collections.singletonMap("username", "Username already being used."));
+            }
+        }
+
+        memberService.updateMember(memberUpdateRequestModel);
+        return ResponseEntity.ok().build();
+    }
+
+    private void sendRegistrationEmailOnSeparateThread(String id, String firstName, String email){
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    String confirmationToken = JwtUtils.createJwtToken(newMemberId.toString(), 259200000);//3days
-                    emailService.sendEmailNewAccountLink(memberCreateRequestModel.getFirstName(), memberCreateRequestModel.getEmail(), confirmationToken);
-                    memberService.setConfirmationMailSent(true, newMemberId);
+                    String confirmationToken = JwtUtils.createJwtToken(id, 259200000);//3days
+                    emailService.sendEmailNewAccountLink(firstName, email, confirmationToken);
+                    memberService.setRegistrationMailSent(true, Long.parseLong(id));
                 } catch (Exception e) {
                     e.printStackTrace();
-                    memberService.setConfirmationMailSent(false, newMemberId);
+                    memberService.setRegistrationMailSent(false, Long.parseLong(id));
                 }
             }
         });
         thread.start();
-        return ResponseEntity.ok().body(Collections.singletonMap("userId", newMemberId));
     }
 }

@@ -61,6 +61,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers(POST, "/register/confirm/pageTwo").permitAll()
                 .antMatchers(POST, "/register/confirm/pageThree").permitAll()
                 .antMatchers(GET, "/forgot-password").permitAll()
+                .antMatchers(POST, "/reset-password").permitAll()
+                .antMatchers(GET, "//validate-reset-password-token").permitAll()
+
                 .antMatchers("/user/*").hasRole("USER")
                 .antMatchers("/admin/*").hasRole("ADMIN")
                 .anyRequest().authenticated();

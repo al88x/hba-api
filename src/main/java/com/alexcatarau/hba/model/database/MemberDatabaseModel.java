@@ -4,11 +4,64 @@ public class MemberDatabaseModel {
 
     private Long id;
     private String firstName;
-    private String middleName;
     private String lastName;
     private String username;
     private Long employeeNumber;
     private String email;
+    private String shift;
+    private String jobRole;
+    private String department;
+    private String area;
+    private boolean active;
+    private boolean pendingAccountRegistration;
+
+    public String getShift() {
+        return shift;
+    }
+
+    public void setShift(String shift) {
+        this.shift = shift;
+    }
+
+    public String getJobRole() {
+        return jobRole;
+    }
+
+    public void setJobRole(String jobRole) {
+        this.jobRole = jobRole;
+    }
+
+    public String getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
+    }
+
+    public String getArea() {
+        return area;
+    }
+
+    public void setArea(String area) {
+        this.area = area;
+    }
+
+    public boolean isPendingAccountRegistration() {
+        return pendingAccountRegistration;
+    }
+
+    public void setPendingAccountRegistration(boolean pendingAccountRegistration) {
+        this.pendingAccountRegistration = pendingAccountRegistration;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
 
     public String getEmail() {
         return email;
@@ -40,14 +93,6 @@ public class MemberDatabaseModel {
 
     public void setFirstName(String firstName) {
         this.firstName = firstName;
-    }
-
-    public String getMiddleName() {
-        return middleName;
-    }
-
-    public void setMiddleName(String middleName) {
-        this.middleName = middleName;
     }
 
     public String getLastName() {
