@@ -3,6 +3,7 @@ package com.alexcatarau.hba.controller;
 import com.alexcatarau.hba.model.database.MemberDatabaseModel;
 import com.alexcatarau.hba.model.request.MemberCreateRequestModel;
 import com.alexcatarau.hba.model.request.MemberRequestFilter;
+import com.alexcatarau.hba.model.request.MemberUpdateRequestModel;
 import com.alexcatarau.hba.model.response.MemberListResponseModel;
 import com.alexcatarau.hba.security.utils.JwtProperties;
 import com.alexcatarau.hba.security.utils.JwtUtils;
@@ -105,6 +106,39 @@ public class MemberController {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();
+    }
+
+    @PostMapping("/update")
+    @ResponseBody
+    public ResponseEntity updateMember(@RequestBody @Valid MemberUpdateRequestModel memberUpdateRequestModel, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        MemberDatabaseModel memberDataFromDatabase = memberService.getMemberById(Long.parseLong(memberUpdateRequestModel.getId())).get();
+        if(memberDataFromDatabase.getEmployeeNumber() != Long.parseLong(memberUpdateRequestModel.getEmployeeNumber())){
+            boolean isDuplicateEmployeeNumber = memberService.checkDuplicateEmployeeNumber(memberUpdateRequestModel.getEmployeeNumber());
+            if (isDuplicateEmployeeNumber) {
+                return ResponseEntity.badRequest().body(Collections.singletonMap("employeeNumber", "Employee Number already being used."));
+            }
+        }
+
+        if(!memberDataFromDatabase.getEmail().equals(memberUpdateRequestModel.getEmail())){
+            Optional<Long> existingMemberId = memberService.emailExistsInDatabase(memberUpdateRequestModel.getEmail());
+            if (existingMemberId.isPresent()) {
+                return ResponseEntity.badRequest().body(Collections.singletonMap("email", "Email already being used."));
+            }
+        }
+
+        if(!memberDataFromDatabase.getUsername().equals(memberUpdateRequestModel.getUsername())){
+        boolean isDuplicateUsername = memberService.isUsernameDuplicate(memberUpdateRequestModel.getUsername());
+            if (isDuplicateUsername) {
+                return ResponseEntity.badRequest().body(Collections.singletonMap("username", "Username already being used."));
+            }
+        }
+
+        memberService.updateMember(memberUpdateRequestModel);
+        return ResponseEntity.ok().build();
     }
 
     private void sendRegistrationEmailOnSeparateThread(String id, String firstName, String email){

@@ -3,6 +3,7 @@ package com.alexcatarau.hba.service;
 import com.alexcatarau.hba.model.database.MemberDatabaseModel;
 import com.alexcatarau.hba.model.request.MemberCreateRequestModel;
 import com.alexcatarau.hba.model.request.MemberRequestFilter;
+import com.alexcatarau.hba.model.request.MemberUpdateRequestModel;
 import org.jdbi.v3.core.Jdbi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -99,7 +100,7 @@ public class MemberService {
     }
 
 
-    private boolean isUsernameDuplicate(String username) {
+    public boolean isUsernameDuplicate(String username) {
         return jdbi.withHandle(handle -> handle.createQuery("select exists(select 1 from members where username = :username);")
                 .bind("username", username)
                 .mapTo(Boolean.class)
@@ -170,6 +171,21 @@ public class MemberService {
     public void activateAccount(long id) {
         jdbi.withHandle(handle -> handle.createUpdate("UPDATE members SET active = true where id=:id;")
                 .bind("id", id)
+                .execute());
+    }
+
+    public void updateMember(MemberUpdateRequestModel memberUpdateRequestModel) {
+        jdbi.withHandle(handle -> handle.createUpdate("UPDATE members SET first_name=:firstName, last_name=:lastName, employee_number=:employeeNumber, username=:username, email=:email, shift=:shift, job_role=:jobRole, department=:department, area=:area where id = :id;")
+                .bind("firstName", memberUpdateRequestModel.getFirstName())
+                .bind("lastName", memberUpdateRequestModel.getLastName())
+                .bind("employeeNumber", Long.parseLong(memberUpdateRequestModel.getEmployeeNumber()))
+                .bind("username", memberUpdateRequestModel.getUsername())
+                .bind("email", memberUpdateRequestModel.getEmail())
+                .bind("shift", memberUpdateRequestModel.getShift())
+                .bind("jobRole", memberUpdateRequestModel.getJobRole())
+                .bind("department", memberUpdateRequestModel.getDepartment())
+                .bind("area", memberUpdateRequestModel.getArea())
+                .bind("id", Long.parseLong(memberUpdateRequestModel.getId()))
                 .execute());
     }
 }
