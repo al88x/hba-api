@@ -44,14 +44,14 @@ public class HomeControllerTest {
 
     @Before
     public void createTestUser() {
-        jdbi.withHandle(handle -> handle.createUpdate("INSERT INTO users(id, username, password, roles, permissions, active)\n" +
+        jdbi.withHandle(handle -> handle.createUpdate("INSERT INTO members(id, username, password, roles, permissions, active)\n" +
                 "values (1, 'alex_admin', '$2y$10$mbmAkdm6hi7LyVBaGRBwTOgu9I.rTxo80ZUcI/GSTimZN7unr0MbC', 'ADMIN', 'ADMIN', true);")
                 .execute());
     }
 
     @After
     public void deleteTestUser() {
-        jdbi.withHandle(handle -> handle.createUpdate("DELETE FROM users where username = 'alex_admin';")
+        jdbi.withHandle(handle -> handle.createUpdate("DELETE FROM members where username = 'alex_admin';")
                 .execute());
     }
 

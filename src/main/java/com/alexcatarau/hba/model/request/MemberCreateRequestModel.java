@@ -5,11 +5,14 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 public class MemberCreateRequestModel {
-    @NotNull @NotBlank
+    @NotNull
+    @NotBlank
     private String firstName;
-    @NotNull @NotBlank
+    @NotNull
+    @NotBlank
     private String lastName;
-    @NotNull @NotBlank
+    @NotNull
+    @NotBlank
     private String employeeNumber;
     @Email
     private String email;
@@ -47,6 +50,9 @@ public class MemberCreateRequestModel {
     }
 
     public String getUsernameFromName() {
-        return (firstName.substring(0,3) + lastName.substring(0,3)).toLowerCase();
+        if (firstName != null && firstName.length() > 0 && lastName != null && lastName.length() > 0) {
+            return (firstName.substring(0, 3) + lastName.substring(0, 3)).toLowerCase();
+        }
+        return null;
     }
 }
