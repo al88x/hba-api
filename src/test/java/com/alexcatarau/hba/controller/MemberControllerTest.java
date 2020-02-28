@@ -5,7 +5,6 @@ import com.alexcatarau.hba.model.request.LoginRequestModel;
 import com.alexcatarau.hba.model.request.MemberCreateRequestModel;
 import com.alexcatarau.hba.model.request.MemberUpdateRequestModel;
 import com.alexcatarau.hba.service.EmailService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jdbi.v3.core.Jdbi;
 import org.junit.After;
@@ -24,11 +23,9 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import javax.servlet.http.Cookie;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -291,5 +288,63 @@ public class MemberControllerTest {
         assertEquals("John-edited", firstNameAfterUpdate);
 
     }
+
+    @Test
+    public void lockAccount_givenId_thenReturnIsOk() throws Exception {
+        boolean isActiveBeforeLockAccount = jdbi.withHandle(handle -> handle.createQuery("select active from members where id =31")
+                .mapTo(Boolean.class)
+                .first());
+
+        mockMvc.perform(post("http://localhost:8080/admin/members/lock-account?id=31")
+                .contentType(MediaType.APPLICATION_JSON)
+                .cookie(cookie))
+                .andExpect(status().isOk());
+
+        boolean isActiveAfterLockAccount = jdbi.withHandle(handle -> handle.createQuery("select active from members where id =31")
+                .mapTo(Boolean.class)
+                .first());
+
+
+        mockMvc.perform(post("http://localhost:8080/admin/members/activate-account?id=31")
+                .contentType(MediaType.APPLICATION_JSON)
+                .cookie(cookie))
+                .andExpect(status().isOk());
+
+        boolean isActiveAfterActivateAccount = jdbi.withHandle(handle -> handle.createQuery("select active from members where id =31")
+                .mapTo(Boolean.class)
+                .first());
+
+        assertTrue(isActiveBeforeLockAccount);
+        assertFalse(isActiveAfterLockAccount);
+        assertTrue(isActiveAfterActivateAccount);
+
+    }
+
+    @Test
+    public void sendRegistrationEmail_givenId_thenResponseIsOk() throws Exception {
+        jdbi.withHandle(handle -> handle.createUpdate("UPDATE members SET pending_account_registration = true, active = false where id=31;")
+                .execute());
+
+        doNothing().when(emailService).sendEmailNewAccountLink(any(),any(), any());
+
+        mockMvc.perform(post("http://localhost:8080/admin/members/send-registration-email?id=31")
+                .contentType(MediaType.APPLICATION_JSON)
+                .cookie(cookie))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void sendRegistrationEmail_givenIdForMemberNotPendingRegistration_thenResponseIsBadRequest() throws Exception {
+        jdbi.withHandle(handle -> handle.createUpdate("UPDATE members SET pending_account_registration = false, active = true where id=31;")
+                .execute());
+
+        doNothing().when(emailService).sendEmailNewAccountLink(any(),any(), any());
+
+        mockMvc.perform(post("http://localhost:8080/admin/members/send-registration-email?id=31")
+                .contentType(MediaType.APPLICATION_JSON)
+                .cookie(cookie))
+                .andExpect(status().isBadRequest());
+    }
+
 
 }
