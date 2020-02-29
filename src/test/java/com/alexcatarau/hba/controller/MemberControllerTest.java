@@ -345,6 +345,4 @@ public class MemberControllerTest {
                 .cookie(cookie))
                 .andExpect(status().isBadRequest());
     }
-
-
 }
