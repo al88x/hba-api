@@ -163,5 +163,4 @@ public class RegistrationControllerTest {
                 .content(jsonBody))
                 .andExpect(status().isBadRequest());
     }
-
 }
