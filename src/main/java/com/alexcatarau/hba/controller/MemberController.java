@@ -5,7 +5,6 @@ import com.alexcatarau.hba.model.request.MemberCreateRequestModel;
 import com.alexcatarau.hba.model.request.MemberRequestFilter;
 import com.alexcatarau.hba.model.request.MemberUpdateRequestModel;
 import com.alexcatarau.hba.model.response.MemberListResponseModel;
-import com.alexcatarau.hba.security.utils.JwtProperties;
 import com.alexcatarau.hba.security.utils.JwtUtils;
 import com.alexcatarau.hba.service.EmailService;
 import com.alexcatarau.hba.service.MemberService;
@@ -14,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.Cookie;
 import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;

@@ -91,7 +91,7 @@ public class MemberService {
         return uniqueUsername;
     }
 
-    private String incrementUsername(String uniqueUsername) {
+    public String incrementUsername(String uniqueUsername) {
         if (uniqueUsername.length() == 6) {
             return uniqueUsername + 1;
         }

@@ -55,7 +55,7 @@ public class RegistrationController {
         return ResponseEntity.badRequest().build();
     }
 
-    @PostMapping("confirm/pageThree")
+    @PostMapping("/confirm/pageThree")
     public ResponseEntity saveMemberDetails(@RequestBody MemberDetailsRequestModel model, HttpServletResponse response) {
         Long id = Long.valueOf(JwtUtils.getMemberDetailsFromToken(model.getToken()));
         if (memberService.isMemberPendingAccountRegistration(id)) {
