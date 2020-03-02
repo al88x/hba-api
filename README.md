@@ -1,7 +1,7 @@
 # Holiday booking app - in development
 
-  - Finished user authentication and authorization (admin or user);
-  - Finished user management (create user, edit user, lock user, unlock user, send registration mail); 
+  - Implemented user authentication and authorization (admin or user);
+  - Implemented user management (create user, edit user, lock user, unlock user, send registration mail); 
   
 Stack: 
   
